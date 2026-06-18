@@ -21,7 +21,7 @@ source:
 
 build:
   number: 0
-  skip: true  # [((cuda_compiler_version or "").startswith("11")) or ((cuda_compiler_version or "None") == "None")]
+  skip: true  # [osx or ((cuda_compiler_version or "").startswith("11")) or ((cuda_compiler_version or "None") == "None")]
   script:
     - check-glibc $SRC_DIR/lib*/*.so.*  # [linux]
     - mkdir -p $PREFIX/include/  # [linux]
@@ -71,37 +71,41 @@ outputs:
         This is a runtime package only. Developers should install libmathdx-dev to build with libmathdx.
       license: LicenseRef-MathDx-Software-License-Agreement
       license_file: LICENSE.txt
+      license_family: Other
+      doc_url: https://docs.nvidia.com/cuda/cufftdx/index.html
+      dev_url: https://docs.nvidia.com/cuda/cufftdx/index.html
 
   - name: libmathdx
     build:
       noarch: generic
     requirements:
       host:
-        - {{ pin_subpackage('libmathdx' ~ soname, max_pin=None) }}
+        - {{ pin_subpackage('libmathdx' ~ soname, exact=True) }}
       run:
-      # FIXME: max_pin=None when library is stable
-        - {{ pin_subpackage('libmathdx' ~ soname, max_pin="x.x.x") }}
+        - {{ pin_subpackage('libmathdx' ~ soname, max_pin='x.x.x') }}
+    test:
+      commands:
+        - exit 0
     about:
       summary: The libmathdx runtime library.
       description: >-
         This is a runtime package only. Developers should install libmathdx-dev to build with libmathdx.
       license: LicenseRef-MathDx-Software-License-Agreement
       license_file: LICENSE.txt
+      license_family: Other
+      doc_url: https://docs.nvidia.com/cuda/cufftdx/index.html
+      dev_url: https://docs.nvidia.com/cuda/cufftdx/index.html
 
   - name: libmathdx-dev
     build:
       run_exports:
-      # FIXME: both run_exports max_pin=None when library is stable
-        - {{ pin_subpackage('libmathdx', max_pin="x.x.x") }}
-        - {{ pin_subpackage('libmathdx' ~ soname, max_pin="x.x.x") }}
+        - {{ pin_subpackage('libmathdx' ~ soname, max_pin='x.x.x') }}
     requirements:
       host:
         - cuda-version {{ cuda_compiler_version }}
-        - {{ pin_subpackage('libmathdx', exact=True) }}
         - {{ pin_subpackage('libmathdx' ~ soname, exact=True) }}
       run:
         - {{ pin_compatible('cuda-version', min_pin='x', max_pin='x') }}
-        - {{ pin_subpackage('libmathdx', exact=True) }}
         - {{ pin_subpackage('libmathdx' ~ soname, exact=True) }}
     files:
       - include  # [linux]
@@ -154,18 +158,28 @@ outputs:
         Developers should install this package to link statically with libmathdx.
       license: LicenseRef-MathDx-Software-License-Agreement
       license_file: LICENSE.txt
+      license_family: Other
+      doc_url: https://docs.nvidia.com/cuda/cufftdx/index.html
+      dev_url: https://docs.nvidia.com/cuda/cufftdx/index.html
 
 about:
   home: https://developer.nvidia.com/mathdx
   license: LicenseRef-MathDx-Software-License-Agreement
   license_file: LICENSE.txt
   license_url: https://docs.nvidia.com/cuda/cufftdx/license.html
+  license_family: Other
   summary: The development package for libmathdx.
-  description: >-
-    NVIDIA libmathdx is a runtime code-generation library for cuFFTDx and cuBLASDx. This is the development package. Developers should install this package to link dynamically with libmathdx.
+  description: |
+    NVIDIA libmathdx is a runtime code-generation library for cuFFTDx and cuBLASDx.
+    This is the development package. Developers should install this package to link dynamically with libmathdx.
   doc_url: https://docs.nvidia.com/cuda/cufftdx/index.html
+  dev_url: https://docs.nvidia.com/cuda/cufftdx/index.html
 
 extra:
+  skip-lints:
+    # Keep license URL on Nvidia recipes
+    - deprecate_license_url
+    - host_section_needs_exact_pinnings
   feedstock-name: libmathdx
   recipe-maintainers:
     - conda-forge/cuda
